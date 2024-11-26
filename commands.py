@@ -1,10 +1,9 @@
 from telegram import Update
 from telegram.ext import CallbackContext
+from bot_config import ADMIN_ID, envio_habilitado, memes_fila
 from utils import carregar_ids_enviados
-from bot_config import ADMIN_ID, subreddits, envio_habilitado
 
 # Variáveis globais
-memes_fila = []
 intervalo_postagens = 30  # Intervalo padrão de 30 minutos
 
 async def cm(update: Update, context: CallbackContext):
@@ -19,23 +18,20 @@ Comandos disponíveis:
 /stats - Exibe estatísticas do bot.
 /set_interval <minutos> - Define o intervalo entre as postagens. Ex: /set_interval 10
 /fetch_new - Busca novos memes do Reddit e adiciona à fila.
-/toggle_envio - Habilita ou desabilita o envio de mídia para o canal.
+/toggle_envio - Habilita ou desabilita todo tipo de envio do bot.
 """
     await update.message.reply_text(comandos)
 
 async def toggle_envio(update: Update, context: CallbackContext):
-    """Habilita ou desabilita o envio de mídia para o canal."""
+    """Habilita ou desabilita o envio de mídia e mensagens pelo bot."""
     global envio_habilitado
     user_id = update.message.from_user.id
     if user_id == ADMIN_ID:
         envio_habilitado = not envio_habilitado
         status = "habilitado" if envio_habilitado else "desabilitado"
-        await update.message.reply_text(f"O envio de mídia foi {status}.")
+        await update.message.reply_text(f"Envio de mídia e mensagens foi {status}.")
     else:
         await update.message.reply_text("Você não tem permissão para usar este comando.")
-
-
-
 
 async def add_meme(update: Update, context: CallbackContext):
     """Adiciona manualmente um meme à fila."""
@@ -43,7 +39,7 @@ async def add_meme(update: Update, context: CallbackContext):
     if user_id == ADMIN_ID:
         if context.args:
             meme_url = context.args[0]
-            if meme_url.startswith("http"):  # Valida se é uma URL
+            if meme_url.startswith("http"):
                 memes_fila.append(meme_url)
                 await update.message.reply_text(f"Meme adicionado à fila: {meme_url}")
             else:
@@ -54,7 +50,7 @@ async def add_meme(update: Update, context: CallbackContext):
         await update.message.reply_text("Você não tem permissão para usar este comando.")
 
 async def list_memes(update: Update, context: CallbackContext):
-    """Lista os memes na fila de envio."""
+    """Lista os memes na fila."""
     user_id = update.message.from_user.id
     if user_id == ADMIN_ID:
         if memes_fila:
@@ -115,9 +111,14 @@ async def set_interval(update: Update, context: CallbackContext):
 
 async def fetch_new(update: Update, context: CallbackContext):
     """Busca novos memes do Reddit."""
+    from tasks import buscar_memes_reddit
+
     user_id = update.message.from_user.id
     if user_id == ADMIN_ID:
-        from tasks import buscar_memes_reddit
+        if not envio_habilitado:
+            await update.message.reply_text("Envio está desabilitado. Habilite-o com /toggle_envio para buscar novos memes.")
+            return
+
         ids_enviados = carregar_ids_enviados()
         novos_memes = await buscar_memes_reddit(ids_enviados)
         if novos_memes:

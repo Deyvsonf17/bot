@@ -1,5 +1,5 @@
 import random
-from bot_config import bot, reddit, ADMIN_ID, subreddits, envio_habilitado
+from bot_config import bot, reddit, envio_habilitado, subreddits, ADMIN_ID
 from utils import carregar_ids_enviados, salvar_id_meme, is_image_url
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import aiohttp
@@ -7,14 +7,16 @@ import asyncio
 
 async def buscar_memes_reddit(ids_enviados):
     """Busca novos memes no Reddit."""
+    if not envio_habilitado:
+        print("🔴 Envio está desabilitado. Abortando busca de memes.")
+        return []
+
     try:
         subreddit_nome = random.choice(subreddits)
-        print(f"Buscando memes no subreddit: {subreddit_nome}")
         subreddit = await reddit.subreddit(subreddit_nome)
-
         posts = [post async for post in subreddit.hot(limit=50)]
     except Exception as e:
-        print(f"Erro ao acessar subreddit {subreddit_nome}: {e}")
+        print(f"Erro ao acessar subreddit: {e}")
         return []
 
     memes = [
@@ -22,32 +24,28 @@ async def buscar_memes_reddit(ids_enviados):
         for post in posts
         if post.id not in ids_enviados and await is_image_url(post.url)
     ]
-    print(f"Memes encontrados: {len(memes)}")
-    return memes[:5]  # Limitar a 5 memes
+    return memes[:20]  # Limitar a 20 memes
 
 async def enviar_memes():
     """Envia memes para aprovação do administrador."""
-    global envio_habilitado
-
     if not envio_habilitado:
-        print("🔴 Envio de mídia está desativado. Aguardando...")
+        print("🔴 Envio de mídia está desabilitado.")
         return
 
     ids_enviados = carregar_ids_enviados()
-
-    # Busca novos memes
     memes = await buscar_memes_reddit(ids_enviados)
+
     if not memes:
         print("Nenhum novo meme encontrado para envio.")
         return
 
     for url, title, post_id in memes:
         if not envio_habilitado:
-            print("Envio de mídia foi desativado durante a execução. Abortando.")
+            print("🔴 Envio desativado durante execução. Abortando.")
             break
 
         try:
-            print(f"Preparando envio do meme {post_id}...")
+            print(f"Enviando meme {post_id} para aprovação.")
             keyboard = [
                 [
                     InlineKeyboardButton("Aprovar (com legenda)", callback_data=f"aprovar_com_legenda:{post_id}"),
@@ -57,7 +55,7 @@ async def enviar_memes():
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            async with aiohttp.ClientSession() as session:  # Garante fechamento da sessão
+            async with aiohttp.ClientSession() as session:
                 await bot.send_photo(
                     chat_id=ADMIN_ID,
                     photo=url,
@@ -65,7 +63,6 @@ async def enviar_memes():
                     reply_markup=reply_markup
                 )
             salvar_id_meme(post_id)
-            print(f"Meme {post_id} enviado para aprovação.")
         except Exception as e:
-            print(f"Erro ao enviar meme {post_id} para aprovação: {e}")
+            print(f"Erro ao enviar meme {post_id}: {e}")
         await asyncio.sleep(2)  # Intervalo entre envios

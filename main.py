@@ -18,7 +18,7 @@ async def main():
     application.add_handler(CommandHandler("set_interval", set_interval))
     application.add_handler(CommandHandler("fetch_new", fetch_new))
     application.add_handler(CommandHandler("toggle_envio", toggle_envio))
-    
+
     # Adicionar callback handler
     application.add_handler(CallbackQueryHandler(callback_handler))
 
@@ -27,11 +27,10 @@ async def main():
         while True:
             try:
                 await enviar_memes()
-                print("Aguardando 1h antes do próximo grupo de postagens...")
-                await asyncio.sleep(3600)  # Intervalo entre grupos de postagem para testes
+                await asyncio.sleep(1600)  # Intervalo de meia hora
             except Exception as e:
                 print(f"Erro no loop de postagem: {e}")
-                await asyncio.sleep(10)  # Garantir que o bot não falhe permanentemente
+                await asyncio.sleep(10)  # Evitar falhas permanentes
 
     loop_task = asyncio.create_task(loop_postagem())
     try:

@@ -6,8 +6,8 @@ import nest_asyncio
 nest_asyncio.apply()
 
 # Configuração do Telegram Bot
-TOKEN = "6333929876:AAHVBeNeA3w4a0mc0U5K1HZ3OlwDazMfecw"
-CHAT_ID = "@testememe1"
+TOKEN = "7314129396:AAGRWBE-3fsCB89wWDzRj-ShfdjAEKyL_d4"
+CHAT_ID = "@centraldoMeme"
 ADMIN_ID = 530560530
 
 # Inicializar o bot
