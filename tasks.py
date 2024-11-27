@@ -39,7 +39,7 @@ async def buscar_memes_reddit(ids_enviados):
         for post in posts
         if post.id not in ids_enviados and await is_image_url(post.url)
     ]
-    return memes[:5]  # Limitar a 20 memes
+    return memes[:30]  # Limitar a 20 memes
 
 async def enviar_memes():
     """Envia memes para aprovação do administrador."""
@@ -83,8 +83,8 @@ async def enviar_memes():
                 salvar_id_meme(post_id)
             except Exception as e:
                 print(f"Erro ao enviar meme {post_id}: {e}")
-            await asyncio.sleep(2)  # Intervalo entre envios
-        await asyncio.sleep(30)  # Esperar antes de buscar novos memes
+            await asyncio.sleep(10)  # Intervalo entre envios
+        await asyncio.sleep(60)  # Esperar antes de buscar novos memes
 
 async def callback_handler(update: Update, context: CallbackContext):
     """Lida com os botões de aprovação/reprovação."""
