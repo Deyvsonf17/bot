@@ -3,7 +3,7 @@ import asyncio
 class BotState:
     """Classe para centralizar o estado do bot."""
     def __init__(self):
-        self._envio_habilitado = True  # Estado inicial
+        self._envio_habilitado = False  # Estado inicial
         self._lock = asyncio.Lock()
 
     async def toggle_envio(self):

@@ -54,7 +54,7 @@ async def enviar_memes():
 
         if not memes:
             print("ℹ️ Nenhum novo meme encontrado para envio.")
-            await asyncio.sleep(60)  # Intervalo maior quando não há memes
+            await asyncio.sleep(1800)  # Intervalo maior quando não há memes
             continue
 
         for url, title, post_id in memes:
