@@ -3,10 +3,11 @@ from telegram.ext import CommandHandler, CallbackQueryHandler, ApplicationBuilde
 from commands import cm, add_meme, list_memes, stats, remove_meme, clear_fila, set_interval, fetch_new, toggle_envio_command
 from tasks import enviar_memes
 from handlers import callback_handler
-from bot_config import TOKEN
+from bot_config import TOKEN, bot
 from state import bot_state  # Importa o estado global do bot
 
 async def main():
+    # Inicializa a aplicação do bot
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Adicionar comandos
@@ -23,6 +24,10 @@ async def main():
     # Adicionar callback handler
     application.add_handler(CallbackQueryHandler(callback_handler))
 
+    # Remove o webhook antes de iniciar o polling (evita conflito)
+    print("🔧 Removendo webhook existente para evitar conflitos...")
+    await bot.delete_webhook()
+
     # Tarefa principal de postagem
     async def loop_postagem():
         while True:
@@ -33,15 +38,17 @@ async def main():
 
             try:
                 await enviar_memes()
-                await asyncio.sleep(5)  # Intervalo de 2 horas
+                await asyncio.sleep(5)  # Intervalo de 5 segundos
             except Exception as e:
                 print(f"Erro no loop de postagem: {e}")
                 await asyncio.sleep(5)  # Evitar falhas permanentes
 
+    # Inicia o loop de postagem
     loop_task = asyncio.create_task(loop_postagem())
     try:
-        await application.run_polling()
+        await application.run_polling()  # Inicia o polling para o bot
     finally:
+        # Cancela o loop de postagem ao finalizar
         loop_task.cancel()
         try:
             await loop_task

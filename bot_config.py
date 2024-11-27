@@ -23,7 +23,7 @@ reddit = asyncpraw.Reddit(
 # Lista de subreddits
 subreddits = [
     "MemesBR", "MEMEBRASIL", "Memebras", "DiretoDoZapZap",
-    "BRMemes", "MemesBrasil", "memesenapratica", "brasil", 
+    "BRMemes", "MemesBrasil", "memesenapratica", "brasil",
     "HUEstation", "AgiotasClub", "ShitpostBR", "porramauricio", "eu_nvr"
 ]
 
