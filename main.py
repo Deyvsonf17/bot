@@ -1,9 +1,10 @@
 import asyncio
 from telegram.ext import CommandHandler, CallbackQueryHandler, ApplicationBuilder
-from commands import cm, add_meme, list_memes, stats, remove_meme, clear_fila, set_interval, fetch_new, toggle_envio
+from commands import cm, add_meme, list_memes, stats, remove_meme, clear_fila, set_interval, fetch_new, toggle_envio_command
 from tasks import enviar_memes
 from handlers import callback_handler
 from bot_config import TOKEN
+from state import bot_state  # Importa o estado global do bot
 
 async def main():
     application = ApplicationBuilder().token(TOKEN).build()
@@ -17,7 +18,7 @@ async def main():
     application.add_handler(CommandHandler("stats", stats))
     application.add_handler(CommandHandler("set_interval", set_interval))
     application.add_handler(CommandHandler("fetch_new", fetch_new))
-    application.add_handler(CommandHandler("toggle_envio", toggle_envio))
+    application.add_handler(CommandHandler("toggle_envio", toggle_envio_command))
 
     # Adicionar callback handler
     application.add_handler(CallbackQueryHandler(callback_handler))
@@ -25,12 +26,17 @@ async def main():
     # Tarefa principal de postagem
     async def loop_postagem():
         while True:
+            if not await bot_state.is_envio_habilitado():  # Verifica o estado global
+                print("🔴 Bot desligado. Loop de postagem pausado.")
+                await asyncio.sleep(10)  # Evitar ocupação da CPU
+                continue
+
             try:
                 await enviar_memes()
-                await asyncio.sleep(1600)  # Intervalo de meia hora
+                await asyncio.sleep(1800)  # Intervalo de 2 horas
             except Exception as e:
                 print(f"Erro no loop de postagem: {e}")
-                await asyncio.sleep(10)  # Evitar falhas permanentes
+                await asyncio.sleep(15)  # Evitar falhas permanentes
 
     loop_task = asyncio.create_task(loop_postagem())
     try:

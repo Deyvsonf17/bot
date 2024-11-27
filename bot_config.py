@@ -29,6 +29,3 @@ subreddits = [
 
 # Variável global de fila de memes
 memes_fila = []
-
-# Variável global para habilitar/desabilitar envio de mídia
-envio_habilitado = True

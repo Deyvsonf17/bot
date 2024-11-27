@@ -1,44 +1,58 @@
 from telegram import Update
 from telegram.ext import CallbackContext
-from bot_config import bot, CHAT_ID, envio_habilitado
+from bot_config import bot, CHAT_ID
+from state import bot_state  # Importa a instância global para controle do estado
 
 async def callback_handler(update: Update, context: CallbackContext):
     """Lida com os botões de aprovação/reprovação."""
-    if not envio_habilitado:
-        print("🔴 Envio de mensagens desabilitado.")
-        return
+    if not await bot_state.is_envio_habilitado():  # Verifica o estado antes de qualquer ação
+        print("🔴 Bot está desligado. Ignorando interação com botões.")
+        await update.callback_query.answer(
+            "⚠️ O bot está desligado. Não é possível usar este botão agora.", show_alert=True
+        )
+        return  # Ignorar completamente a interação
 
     query = update.callback_query
     await query.answer()
 
     action, post_id = query.data.split(":")
     message = query.message
-    caption = (
-        message.caption.strip() if message.caption else None
-    )
-    photo_url = message.photo[-1].file_id  # Obtém o File ID da imagem
+    default_caption =   "@centraldomeme"  # Legenda padrão
 
     try:
-        # Apaga a mensagem original enviada ao administrador
+        # Recupera o ID do arquivo da foto
+        photo_url = message.photo[-1].file_id
+    except AttributeError:
+        print("⚠️ A mensagem não contém uma foto válida.")
+        return
+
+    try:
+        # Apaga a mensagem original para evitar duplicidade
         await message.delete()
     except Exception as e:
         print(f"Erro ao apagar a mensagem original: {e}")
 
     if action == "aprovar_com_legenda":
-        # Envia a imagem com a legenda ao canal
         try:
-            if caption:  # Envia com legenda se disponível
-                await bot.send_photo(chat_id=CHAT_ID, photo=photo_url, caption=caption)
-            else:  # Se não houver legenda, envia apenas a imagem
-                await bot.send_photo(chat_id=CHAT_ID, photo=photo_url)
+            # Combina a legenda original com a legenda padrão
+            caption = message.caption.strip() if message.caption else ""
+            final_caption = f"{caption}\n ".strip()
+            await bot.send_photo(chat_id=CHAT_ID, photo=photo_url, caption=final_caption)
+            print(f"✅ Enviado com legenda: {final_caption}")
         except Exception as e:
             print(f"Erro ao enviar imagem com legenda ao canal: {e}")
+            
     elif action == "aprovar_sem_legenda":
-        # Envia a imagem sem legenda ao canal
         try:
-            await bot.send_photo(chat_id=CHAT_ID, photo=photo_url)
+            # Envia a foto com apenas a legenda padrão
+            await bot.send_photo(chat_id=CHAT_ID, photo=photo_url, caption=default_caption)
+            print(f"✅ Enviado sem legenda original, apenas com: {default_caption}")
         except Exception as e:
             print(f"Erro ao enviar imagem sem legenda ao canal: {e}")
     elif action == "reprovar":
-        # Notifica que o meme foi reprovado
-        await query.message.reply_text(f"❌ Meme ({post_id}) reprovado. Nenhum envio ao canal foi feito.")
+        try:
+            # Notifica a reprovação ao administrador
+            await bot.send_message(chat_id=CHAT_ID, text=f"❌ Meme ({post_id}) reprovado.")
+            print(f"❌ Meme reprovado: {post_id}")
+        except Exception as e:
+            print(f"Erro ao enviar notificação de reprovação: {e}")
