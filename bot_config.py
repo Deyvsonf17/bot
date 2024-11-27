@@ -24,7 +24,7 @@ reddit = asyncpraw.Reddit(
 subreddits = [
     "MemesBR", "MEMEBRASIL", "Memebras", "DiretoDoZapZap",
     "BRMemes", "MemesBrasil", "memesenapratica", "brasil",
-    "HUEstation", "AgiotasClub", "ShitpostBR", "porramauricio", "eu_nvr"
+    "HUEstation", "AgiotasClub", "ShitpostBR", "porramauricio", "eu_nvr" "brasilivre"
 ]
 
 # Variável global de fila de memes

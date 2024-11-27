@@ -1,17 +1,11 @@
 from telegram import Update
 from telegram.ext import CallbackContext
-from bot_config import bot, CHAT_ID
+from bot_config import bot, CHAT_ID, ADMIN_ID
 from state import bot_state  # Importa a instância global para controle do estado
 
 async def callback_handler(update: Update, context: CallbackContext):
     """Lida com os botões de aprovação/reprovação."""
-    if not await bot_state.is_envio_habilitado():  # Verifica o estado antes de qualquer ação
-        print("🔴 Bot está desligado. Ignorando interação com botões.")
-        await update.callback_query.answer(
-            "⚠️ O bot está desligado. Não é possível usar este botão agora.", show_alert=True
-        )
-        return  # Ignorar completamente a interação
-
+   
     query = update.callback_query
     await query.answer()
 
@@ -58,7 +52,8 @@ async def callback_handler(update: Update, context: CallbackContext):
     elif action == "reprovar":
         try:
             # Notifica a reprovação ao administrador
-            await bot.send_message(chat_id=CHAT_ID, text=f"❌ Meme ({post_id}) reprovado.")
+            await bot.send_message(chat_id=ADMIN_ID, text=f"❌ Meme ({post_id}) reprovado.")
+
             print(f"❌ Meme reprovado: {post_id}")
         except Exception as e:
             print(f"Erro ao enviar notificação de reprovação: {e}")
