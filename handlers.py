@@ -17,7 +17,7 @@ async def callback_handler(update: Update, context: CallbackContext):
 
     action, post_id = query.data.split(":")
     message = query.message
-    default_caption =   "@centraldomeme"  # Legenda padrão
+    default_caption = "@centraldomeme"  # Legenda padrão
 
     try:
         # Recupera o ID do arquivo da foto
@@ -36,12 +36,18 @@ async def callback_handler(update: Update, context: CallbackContext):
         try:
             # Combina a legenda original com a legenda padrão
             caption = message.caption.strip() if message.caption else ""
-            final_caption = f"{caption}\n ".strip()
+
+            # Configuração: Alterne entre "acima" ou "abaixo"
+            # Para colocar o @centraldomeme em cima da legenda:
+            final_caption = f"{default_caption}\n{caption}".strip()
+
+            # Para colocar o @centraldomeme embaixo da legenda:
+            # final_caption = f"{caption}\n{default_caption}".strip()
+
             await bot.send_photo(chat_id=CHAT_ID, photo=photo_url, caption=final_caption)
             print(f"✅ Enviado com legenda: {final_caption}")
         except Exception as e:
             print(f"Erro ao enviar imagem com legenda ao canal: {e}")
-            
     elif action == "aprovar_sem_legenda":
         try:
             # Envia a foto com apenas a legenda padrão

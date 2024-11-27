@@ -33,10 +33,10 @@ async def main():
 
             try:
                 await enviar_memes()
-                await asyncio.sleep(1800)  # Intervalo de 2 horas
+                await asyncio.sleep(5)  # Intervalo de 2 horas
             except Exception as e:
                 print(f"Erro no loop de postagem: {e}")
-                await asyncio.sleep(15)  # Evitar falhas permanentes
+                await asyncio.sleep(5)  # Evitar falhas permanentes
 
     loop_task = asyncio.create_task(loop_postagem())
     try:
